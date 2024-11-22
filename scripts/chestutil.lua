@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 
 Chest = Chest or {}
 
@@ -17,14 +17,14 @@ function Chest.getOrCreateId(itemName)
 end
 
 function getDefaultItem()
-  for k, v in pairs(game.item_prototypes) do
+  for k, v in pairs(prototypes.item) do
     return k
   end
   return Config.CHEST_NAME
 end
 
 function ensureValidItem(itemName)
-  if not itemName or not game.item_prototypes[itemName] then
+  if not itemName or not prototypes.item[itemName] then
     return getDefaultItem()
   end
   return itemName
@@ -56,7 +56,7 @@ function addBurnerCycle(cycle, entity, isOutput)
   if isOutput then return end
   if entity.burner then
     for fuelCat, _ in pairs(entity.burner.fuel_categories) do
-      for _, item in pairs(game.item_prototypes) do
+      for _, item in pairs(prototypes.item) do
         if item.fuel_category == fuelCat then
           table.insert(cycle, item.name)
         end
@@ -67,7 +67,7 @@ end
 
 -- Adds ingredient/products from the entity's current recipe.
 function addRecipeCycle(cycle, entity, isOutput)
-  if entity.prototype.crafting_speed and entity.get_recipe() then
+  if entity.prototype.crafting_categories and entity.get_recipe() then
     local items = isOutput and entity.get_recipe().products or entity.get_recipe().ingredients
     for _, v in pairs(items) do
       if (v.type == "item") then table.insert(cycle, v.name) end
@@ -86,7 +86,7 @@ end
 
 -- Adds ore types for a mining drill.
 function addMinerCycle(cycle, entity, isOutput)
-  if entity.prototype.type == "mining-drill" and entity.mining_target and game.item_prototypes[entity.mining_target.name] then
+  if entity.prototype.type == "mining-drill" and entity.mining_target and prototypes.item[entity.mining_target.name] then
     table.insert(cycle, entity.mining_target.name)
   end
 end

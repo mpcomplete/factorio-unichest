@@ -1,6 +1,6 @@
-local Position = require('__stdlib__/stdlib/area/position')
-local Area = require('__stdlib__/stdlib/area/area')
-local table = require('__stdlib__/stdlib/utils/table')
+local Position = require('__kry_stdlib__/stdlib/area/position')
+local Area = require('__kry_stdlib__/stdlib/area/area')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 require('util')
 
 -- From https://github.com/mrvn/factorio-example-entity-with-tags
@@ -53,12 +53,13 @@ end
 script.on_event(defines.events.on_pre_build, function(event)
   local player = game.players[event.player_index]
   if not player.is_cursor_blueprint() or global.lastPreBuildTick == event.tick then return end
-  if not player.get_blueprint_entities() then return end  -- might be all tiles
+  local bp = player.cursor_record or player.cursor_stack
+  if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
   global.lastPreBuildTick = event.tick
 
   -- Find the blueprint's bounding box.
   local positions = {}
-  table.each(player.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
+  table.each(bp.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
   local leftTop = Position.min_xy(positions)
   local rightBottom = Position.max_xy(positions)
   local bbox = Area.new{leftTop, rightBottom}
@@ -72,7 +73,7 @@ script.on_event(defines.events.on_pre_build, function(event)
 
   -- Find the positions where the blueprint *would* place the relevant entities.
   local bpEntityPositions = {}
-  table.each(player.get_blueprint_entities(), function(v)
+  table.each(bp.get_blueprint_entities(), function(v)
     if v.name == Config.CHEST_NAME then
       local bpPos = rotateAndFlip(Position.new(v.position):add(negCenter), event.direction, event.flip_horizontal, event.flip_vertical)
       local pos = bpPos:add(event.position):center()
@@ -124,10 +125,17 @@ script.on_event(defines.events.on_gui_opened, function(event)
 end)
 
 script.on_init(function(event)
+  global = global or {}
   global.nameToId = {}
   for i, player in pairs(game.players) do
+    player.print('Global data initialized')
     initGui(player)
   end
+end)
+
+script.on_load(function(event)
+  global = global or {}
+  global.nameToId = global.nameToId or {}
 end)
 
 script.on_configuration_changed(function(event)

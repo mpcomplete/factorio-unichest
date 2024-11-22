@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 
 local function create(protoName)
   --- Item ---
@@ -12,7 +12,7 @@ local function create(protoName)
     subgroup = "storage",
     order = "a[steel-chest]-a[" .. protoName .. "]",
     place_result = protoName,
-    stack_size = 100
+    stack_size = 100,
   })
 
   --- Entity ---
@@ -40,27 +40,28 @@ local function create(protoName)
   local crafting_cost = settings.startup["zy-unichest-crafting-cost"].value
   local ingredients = {
       --crafting_cost == "easy" and {
-        { "iron-plate", 20 }
+        { type = "item", name = "iron-plate", amount = 20 }
   }
   ingredients =
       crafting_cost == "medium" and {
-        { "steel-chest",        10 },
-        { "iron-plate",         100 },
-        { "copper-plate",       100 },
-        { "electronic-circuit", 50 },
+        { type = "item", name = "steel-chest",        amount = 10 },
+        { type = "item", name = "iron-plate",         amount = 100 },
+        { type = "item", name = "copper-plate",       amount = 100 },
+        { type = "item", name = "electronic-circuit", amount = 50 },
       } or crafting_cost == "hard" and {
-        { "steel-chest",      20 },
-        { "iron-plate",       100 },
-        { "copper-plate",     100 },
-        { "advanced-circuit", 50 },
-        { "processing-unit",  10 }
+        { type = "item", name = "steel-chest",      amount = 20 },
+        { type = "item", name = "iron-plate",       amount = 100 },
+        { type = "item", name = "copper-plate",     amount = 100 },
+        { type = "item", name = "advanced-circuit", amount = 50 },
+        { type = "item", name = "processing-unit",  amount = 10 }
       } or ingredients
   local recipe = {
     type = "recipe",
     name = protoName,
     enabled = false,
     ingredients = ingredients,
-    result = protoName
+    results = { { type = "item", name = protoName, amount = 1 } },
+    allow_quality = false
   }
 
   --- Technology ---

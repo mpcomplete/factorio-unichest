@@ -1,4 +1,4 @@
-local table = require('__stdlib__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 local Util = require('util')
 
 script.on_event(defines.events.on_player_selected_area, function(event)
@@ -25,7 +25,7 @@ script.on_event(defines.events.on_player_selected_area, function(event)
   end)
   -- Miners are special in that they don't have inserters.
   table.each(player.surface.find_entities_filtered{type = "mining-drill", area = event.area}, function(v)
-    if v.mining_target and game.item_prototypes[v.mining_target.name] and v.drop_target and v.drop_target.name == Config.CHEST_NAME then
+    if v.mining_target and prototypes.item[v.mining_target.name] and v.drop_target and v.drop_target.name == Config.CHEST_NAME then
       local id = v.unit_number
       drops[id] = drops[id] or {}
       table.insert(drops[id], {chest = v.drop_target, source = v})

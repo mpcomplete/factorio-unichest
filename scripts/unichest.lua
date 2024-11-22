@@ -1,6 +1,6 @@
-local Position = require('__stdlib__/stdlib/area/position')
-local Area = require('__stdlib__/stdlib/area/area')
-local table = require('__stdlib__/stdlib/utils/table')
+local Position = require('__kry_stdlib__/stdlib/area/position')
+local Area = require('__kry_stdlib__/stdlib/area/area')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 local Util = require('util')
 
 Chest = Chest or {}

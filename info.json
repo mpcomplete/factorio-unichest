@@ -1,12 +1,12 @@
 {
   "name": "Unichest",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "title": "Unichest",
   "author": "zysnarch",
-  "factorio_version": "1.1",
+  "factorio_version": "2.0",
   "dependencies": [
     "base >= 1.1",
-    "stdlib >= 1.4.8"
+    "kry_stdlib >= 1.4.8"
   ],
   "description": "Linked chests with globally shared contents, by item type. Set the item filter in the GUI and the contents will be shared among all other unichests with the same filter. Includes convenience tools to set the filter based on connected assemblers/miners/furnaces/etc (either by shift-click paste or provided selection tool). Pairs well with Unipipe for a logistics-free experience!"
 }
