@@ -28,7 +28,7 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
         local id = bp_entity.entity_number
         local entity = map[id]
         if entity then
-          bp.set_blueprint_entity_tag(id, "filter", Chest.getNameFromId(entity.link_id))
+          bp.set_blueprint_entity_tag(id, "filter", Chest.getItemFilter(entity))
         else
           game.print("missing mapping for bp_entity " .. id .. ":" .. bp_entity.name)
         end
@@ -50,50 +50,52 @@ function rotateAndFlip(pos, dir, flipH, flipV)
   return pos
 end
 
-script.on_event(defines.events.on_pre_build, function(event)
-  local player = game.players[event.player_index]
-  if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
-  local bp = player.cursor_record or player.cursor_stack
-  if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
-  storage.lastPreBuildTick = event.tick
+-- I believe this is no longer necessary? It appears to exist so that pasting a blueprint over ghost entities updates their tags to the
+-- new blueprint's version. But that seems to work without this garbage.
+-- script.on_event(defines.events.on_pre_build, function(event)
+  -- local player = game.players[event.player_index]
+  -- if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
+  -- local bp = player.cursor_record or player.cursor_stack
+  -- if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
+  -- storage.lastPreBuildTick = event.tick
 
-  -- Find the blueprint's bounding box.
-  local positions = {}
-  table.each(bp.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
-  local leftTop = Position.min_xy(positions)
-  local rightBottom = Position.max_xy(positions)
-  local bbox = Area.new{leftTop, rightBottom}
-  local negCenter = bbox:center():flip()
-  local bboxSize = bbox:offset(negCenter)  -- `bbox - bbox.center`
-  -- Maybe rotate the bbox.
-  local area = bboxSize:offset(event.position):ceil()
-  if event.direction == defines.direction.east or event.direction == defines.direction.west then
-    area = area:flip()
-  end
+  -- -- Find the blueprint's bounding box.
+  -- local positions = {}
+  -- table.each(bp.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
+  -- local leftTop = Position.min_xy(positions)
+  -- local rightBottom = Position.max_xy(positions)
+  -- local bbox = Area.new{leftTop, rightBottom}
+  -- local negCenter = bbox:center():flip()
+  -- local bboxSize = bbox:offset(negCenter)  -- `bbox - bbox.center`
+  -- -- Maybe rotate the bbox.
+  -- local area = bboxSize:offset(event.position):ceil()
+  -- if event.direction == defines.direction.east or event.direction == defines.direction.west then
+  --   area = area:flip()
+  -- end
 
-  -- Find the positions where the blueprint *would* place the relevant entities.
-  local bpEntityPositions = {}
-  table.each(bp.get_blueprint_entities(), function(v)
-    if v.name == Config.CHEST_NAME then
-      local bpPos = rotateAndFlip(Position.new(v.position):add(negCenter), event.direction, event.flip_horizontal, event.flip_vertical)
-      local pos = bpPos:add(event.position):center()
-      table.insert(bpEntityPositions, pos)
-    end
-  end)
+  -- -- Find the positions where the blueprint *would* place the relevant entities.
+  -- local bpEntityPositions = {}
+  -- table.each(bp.get_blueprint_entities(), function(v)
+  --   if v.name == Config.CHEST_NAME then
+  --     local bpPos = rotateAndFlip(Position.new(v.position):add(negCenter), event.direction, event.flip_horizontal, event.flip_vertical)
+  --     local pos = bpPos:add(event.position):center()
+  --     table.insert(bpEntityPositions, pos)
+  --   end
+  -- end)
 
-  -- Destroy any existing entities where the blueprint would overwrite them.
-  table.each(player.surface.find_entities_filtered {name = 'entity-ghost', area = area}, function(v)
-    if v.ghost_name == Config.CHEST_NAME then
-      local center = Position.center(v.position)
-      if table.any(bpEntityPositions, function(p) return center:equals(p) end) then
-        v.destroy()
-      end
-    end
-  end)
-end)
+  -- -- Destroy any existing entities where the blueprint would overwrite them.
+  -- table.each(player.surface.find_entities_filtered {name = 'entity-ghost', area = area}, function(v)
+  --   if v.ghost_name == Config.CHEST_NAME then
+  --     local center = Position.center(v.position)
+  --     if table.any(bpEntityPositions, function(p) return center:equals(p) end) then
+  --       v.destroy()
+  --     end
+  --   end
+  -- end)
+-- end)
 
 function onBuiltEntity(event)
-  local entity = event.created_entity
+  local entity = event.entity
   if entity and entity.valid then
     Chest.onBuiltEntity(event, entity)
   end
@@ -125,7 +127,7 @@ script.on_event(defines.events.on_gui_opened, function(event)
 end)
 
 script.on_init(function(event)
-  storage.nameToId = {}
+  storage.filterToId = {}
   for i, player in pairs(game.players) do
     player.print('Global data initialized')
     initGui(player)

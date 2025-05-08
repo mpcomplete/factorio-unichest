@@ -7,49 +7,62 @@ function Chest.getNextId()
   return storage.nextId
 end
 
-function Chest.getOrCreateId(itemName)
-  storage.nameToId = storage.nameToId or {}
-  local id = storage.nameToId[itemName]
+function Chest.getOrCreateId(itemFilter)
+  storage.filterToId = storage.filterToId or {}
+  local key = itemFilter.name .. "/" .. itemFilter.quality
+  local id = storage.filterToId[key]
   if id == nil then
     id = Chest.getNextId()
-    storage.nameToId[itemName] = id
+    storage.filterToId[key] = id
   end
   return id
 end
 
 function getDefaultItem()
   for k, v in pairs(prototypes.item) do
-    return k
+    return { name = k, quality = "normal" }
   end
-  return Config.CHEST_NAME
+  return { name = Config.CHEST_NAME, quality = "normal" }
 end
 
-function ensureValidItem(itemName)
-  if not itemName or not prototypes.item[itemName] then
+function ensureValidItem(itemFilter)
+  if not itemFilter or not prototypes.item[itemFilter.name] then
     return getDefaultItem()
   end
-  return itemName
+  return itemFilter
 end
 
-function Chest.getNameFromId(id)
-  storage.nameToId = storage.nameToId or {}
-  for key, value in pairs(storage.nameToId) do
-    if value == id then
-      return ensureValidItem(key)
+-- function Chest.getNameFromId(id)
+--   storage.nameToId = storage.nameToId or {}
+--   for key, value in pairs(storage.nameToId) do
+--     if value == id then
+--       return ensureValidItem(key)
+--     end
+--   end
+--   return getDefaultItem()
+-- end
+
+function Chest.getItemFilter(entity)
+  local inventory = entity.get_output_inventory()
+  for i = 1, #inventory do
+    local filter = inventory.get_filter(i)
+    if filter then
+       return { name = filter.name, quality = filter.quality }
     end
   end
+  game.print("Warning: Unichest has no item filter set.")
   return getDefaultItem()
 end
 
-function Chest.setItemFilter(entity, itemName)
-  itemName = ensureValidItem(itemName)
-  storage.lastItemFilter = itemName
+function Chest.setItemFilter(entity, itemFilter)
+  itemFilter = ensureValidItem(itemFilter)
+  storage.lastItemFilter = itemFilter
 
-  local id = Chest.getOrCreateId(itemName)
+  local id = Chest.getOrCreateId(itemFilter)
   entity.link_id = id
   local inventory = entity.get_output_inventory()
   for i = 1, #inventory do
-    inventory.set_filter(i, itemName)
+    inventory.set_filter(i, itemFilter)
   end
 end
 
@@ -60,7 +73,7 @@ function addBurnerCycle(cycle, entity, isOutput)
     for fuelCat, _ in pairs(entity.burner.fuel_categories) do
       for _, item in pairs(prototypes.item) do
         if item.fuel_category == fuelCat then
-          table.insert(cycle, item.name)
+          table.insert(cycle, { name = item.name, quality = "normal"} )
         end
       end
     end
@@ -70,9 +83,10 @@ end
 -- Adds ingredient/products from the entity's current recipe.
 function addRecipeCycle(cycle, entity, isOutput)
   if entity.prototype.crafting_categories and entity.get_recipe() then
+    local _, quality = entity.get_recipe()
     local items = isOutput and entity.get_recipe().products or entity.get_recipe().ingredients
     for _, v in pairs(items) do
-      if (v.type == "item") then table.insert(cycle, v.name) end
+      if (v.type == "item") then table.insert(cycle, {name = v.name, quality = quality.name }) end
     end
   end
 end
@@ -81,7 +95,7 @@ end
 function addLabCycle(cycle, entity, isOutput)
   if entity.prototype.lab_inputs then
     for _, v in pairs(entity.prototype.lab_inputs) do
-      table.insert(cycle, v)
+      table.insert(cycle, { name = v, quality = "normal" })
     end
   end
 end
@@ -89,7 +103,7 @@ end
 -- Adds ore types for a mining drill.
 function addMinerCycle(cycle, entity, isOutput)
   if entity.prototype.type == "mining-drill" and entity.mining_target and prototypes.item[entity.mining_target.name] then
-    table.insert(cycle, entity.mining_target.name)
+    table.insert(cycle, { name = entity.mining_target.name, quality = "normal" })
   end
 end
 
@@ -98,7 +112,7 @@ function addChestInventoryCycle(cycle, entity, isOutput)
    local inventory = entity.get_inventory(defines.inventory.chest)
    if not inventory then return end
    for k,v in pairs(inventory.get_contents()) do
-     table.insert(cycle, k)
+     table.insert(cycle, { name = v.name, quality = v.quality })
    end
 end
 
@@ -119,7 +133,7 @@ function Chest.setItemFilterFromSource(dest, source, isOutput)
 
   if #itemCycle == 0 then
     -- link_id might have changed (e.g. if we pasted from a chest), so update our local metadata from it.
-    Chest.setItemFilter(dest, Chest.getNameFromId(dest.link_id))
+    Chest.setItemFilter(dest, Chest.getItemFilter(dest))
     return
   end
 

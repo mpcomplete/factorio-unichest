@@ -3,6 +3,7 @@ Version: 1.0.5
 Date: 2025-05-07
   Fixes:
     - Updated for factorio 2.0.
+    - Supports quality (defaults to normal).
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.4
 Date: 2023-07-03
