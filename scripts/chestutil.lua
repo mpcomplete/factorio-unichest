@@ -3,15 +3,15 @@ local table = require('__kry_stdlib__/stdlib/utils/table')
 Chest = Chest or {}
 
 function Chest.getNextId()
-  global.nextId = (global.nextId or 0) + 1
-  return global.nextId
+  storage.nextId = (storage.nextId or 0) + 1
+  return storage.nextId
 end
 
 function Chest.getOrCreateId(itemName)
-  local id = global.nameToId[itemName]
+  local id = storage.nameToId[itemName]
   if id == nil then
     id = Chest.getNextId()
-    global.nameToId[itemName] = id
+    storage.nameToId[itemName] = id
   end
   return id
 end
@@ -31,7 +31,7 @@ function ensureValidItem(itemName)
 end
 
 function Chest.getNameFromId(id)
-  for key, value in pairs(global.nameToId) do
+  for key, value in pairs(storage.nameToId) do
     if value == id then
       return ensureValidItem(key)
     end
@@ -41,7 +41,7 @@ end
 
 function Chest.setItemFilter(entity, itemName)
   itemName = ensureValidItem(itemName)
-  global.lastItemFilter = itemName
+  storage.lastItemFilter = itemName
 
   local id = Chest.getOrCreateId(itemName)
   entity.link_id = id
@@ -121,16 +121,16 @@ function Chest.setItemFilterFromSource(dest, source, isOutput)
     return
   end
 
-  if global.lastPasteSource ~= source or global.lastPasteAlt ~= isOutput then
-    global.lastPasteSource = source
-    global.lastPasteAlt = isOutput
-    global.lastPasteIdx = 1
+  if storage.lastPasteSource ~= source or storage.lastPasteAlt ~= isOutput then
+    storage.lastPasteSource = source
+    storage.lastPasteAlt = isOutput
+    storage.lastPasteIdx = 1
   end
 
-  local item = itemCycle[global.lastPasteIdx or 1]
-  global.lastPasteIdx = global.lastPasteIdx + 1
-  if global.lastPasteIdx > #itemCycle then
-    global.lastPasteIdx = 1
+  local item = itemCycle[storage.lastPasteIdx or 1]
+  storage.lastPasteIdx = storage.lastPasteIdx + 1
+  if storage.lastPasteIdx > #itemCycle then
+    storage.lastPasteIdx = 1
   end
 
   Chest.setItemFilter(dest, item)

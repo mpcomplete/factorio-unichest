@@ -52,10 +52,10 @@ end
 
 script.on_event(defines.events.on_pre_build, function(event)
   local player = game.players[event.player_index]
-  if not player.is_cursor_blueprint() or global.lastPreBuildTick == event.tick then return end
+  if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
   local bp = player.cursor_record or player.cursor_stack
   if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
-  global.lastPreBuildTick = event.tick
+  storage.lastPreBuildTick = event.tick
 
   -- Find the blueprint's bounding box.
   local positions = {}
@@ -125,8 +125,7 @@ script.on_event(defines.events.on_gui_opened, function(event)
 end)
 
 script.on_init(function(event)
-  global = global or {}
-  global.nameToId = {}
+  storage.nameToId = {}
   for i, player in pairs(game.players) do
     player.print('Global data initialized')
     initGui(player)
@@ -134,8 +133,7 @@ script.on_init(function(event)
 end)
 
 script.on_load(function(event)
-  global = global or {}
-  global.nameToId = global.nameToId or {}
+  storage.nameToId = storage.nameToId or {}
 end)
 
 script.on_configuration_changed(function(event)
@@ -148,8 +146,8 @@ script.on_configuration_changed(function(event)
   --     local inventory = v.get_output_inventory()
   --     local filter = inventory.get_filter(1)
   --     if filter and filter ~= "" then
-  --       global.nameToId[filter] = v.link_id
-  --       global.nextId = math.max((global.nextId or 0), v.link_id) + 1
+  --       storage.nameToId[filter] = v.link_id
+  --       storage.nextId = math.max((storage.nextId or 0), v.link_id) + 1
   --       game.print("Found filter " .. filter .. " with id=" .. v.link_id)
   --     end
   --   end)

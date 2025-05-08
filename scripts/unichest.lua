@@ -12,7 +12,7 @@ function Chest.onBuiltEntity(event, entity)
   if tagFilter then
     Chest.setItemFilter(entity, tagFilter)
   elseif entity.link_id == 0 then
-    Chest.setItemFilter(entity, global.lastItemFilter or Chest.getNameFromId(entity.link_id))
+    Chest.setItemFilter(entity, storage.lastItemFilter or Chest.getNameFromId(entity.link_id))
   end
 end
 
