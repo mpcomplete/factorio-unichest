@@ -21,5 +21,11 @@ data:extend({
     setting_type = "startup",
     default_value = "easy",
     allowed_values = { "easy", "medium", "hard" }
+  },
+  {
+    type = "bool-setting",
+    name = "zy-unichest-per-surface",
+    setting_type = "startup",
+    default_value = true
   }
 })

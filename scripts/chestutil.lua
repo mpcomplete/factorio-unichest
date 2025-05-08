@@ -7,9 +7,10 @@ function Chest.getNextId()
   return storage.nextId
 end
 
-function Chest.getOrCreateId(itemFilter)
+function Chest.getOrCreateId(itemFilter, surfaceName)
   storage.filterToId = storage.filterToId or {}
-  local key = itemFilter.name .. "/" .. itemFilter.quality
+  if not settings.startup["zy-unichest-per-surface"].value then surfaceName = "nauvis" end
+  local key = surfaceName .. "/" .. itemFilter.name .. "/" .. itemFilter.quality
   local id = storage.filterToId[key]
   if id == nil then
     id = Chest.getNextId()
@@ -32,16 +33,6 @@ function ensureValidItem(itemFilter)
   return itemFilter
 end
 
--- function Chest.getNameFromId(id)
---   storage.nameToId = storage.nameToId or {}
---   for key, value in pairs(storage.nameToId) do
---     if value == id then
---       return ensureValidItem(key)
---     end
---   end
---   return getDefaultItem()
--- end
-
 function Chest.getItemFilter(entity)
   local inventory = entity.get_output_inventory()
   for i = 1, #inventory do
@@ -58,7 +49,7 @@ function Chest.setItemFilter(entity, itemFilter)
   itemFilter = ensureValidItem(itemFilter)
   storage.lastItemFilter = itemFilter
 
-  local id = Chest.getOrCreateId(itemFilter)
+  local id = Chest.getOrCreateId(itemFilter, settings.startup["zy-unichest-per-surface"].value and entity.surface.name or "nauvis")
   entity.link_id = id
   local inventory = entity.get_output_inventory()
   for i = 1, #inventory do

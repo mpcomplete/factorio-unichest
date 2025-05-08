@@ -39,19 +39,21 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
   end
 end)
 
-function rotateAndFlip(pos, dir, flipH, flipV)
-  if flipH then pos.x = -pos.x end
-  if flipV then pos.y = -pos.y end
-  if dir == defines.direction.north then return pos end
-  if dir == defines.direction.west then return Position.construct(pos.y, -pos.x) end
-  if dir == defines.direction.south then return Position.construct(-pos.x, -pos.y) end
-  if dir == defines.direction.east then return Position.construct(-pos.y, pos.x) end
-  game.print("Warning: unexpected blueprint rotation " .. dir ". Chest filters will be incorrect.")
-  return pos
-end
-
+-- TODO:
 -- I believe this is no longer necessary? It appears to exist so that pasting a blueprint over ghost entities updates their tags to the
 -- new blueprint's version. But that seems to work without this garbage.
+--
+-- function rotateAndFlip(pos, dir, flipH, flipV)
+--   if flipH then pos.x = -pos.x end
+--   if flipV then pos.y = -pos.y end
+--   if dir == defines.direction.north then return pos end
+--   if dir == defines.direction.west then return Position.construct(pos.y, -pos.x) end
+--   if dir == defines.direction.south then return Position.construct(-pos.x, -pos.y) end
+--   if dir == defines.direction.east then return Position.construct(-pos.y, pos.x) end
+--   game.print("Warning: unexpected blueprint rotation " .. dir ". Chest filters will be incorrect.")
+--   return pos
+-- end
+--
 -- script.on_event(defines.events.on_pre_build, function(event)
   -- local player = game.players[event.player_index]
   -- if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
@@ -115,6 +117,13 @@ script.on_event(defines.events.on_entity_settings_pasted, function(event)
   Chest.setItemFilterFromSource(event.destination, event.source, false)
 end)
 
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+  local player = game.players[event.player_index]
+  if event.setting == "zy-unichest-per-surface" then
+    game.print("Toggled per-surface, should fix up chests")
+  end
+end)
+
 function initGui(player)
   Chest.destroyGui(player)
   Chest.buildGui(player)
@@ -129,7 +138,6 @@ end)
 script.on_init(function(event)
   storage.filterToId = {}
   for i, player in pairs(game.players) do
-    player.print('Global data initialized')
     initGui(player)
   end
 end)
@@ -138,18 +146,13 @@ script.on_configuration_changed(function(event)
   for i, player in pairs(game.players) do
     initGui(player)
   end
-  -- TODO
-  -- for _, surface in pairs(game.surfaces) do
-  --   table.each(surface.find_entities_filtered {name = Config.CHEST_NAME}, function(v)
-  --     local inventory = v.get_output_inventory()
-  --     local filter = inventory.get_filter(1)
-  --     if filter and filter ~= "" then
-  --       storage.nameToId[filter] = v.link_id
-  --       storage.nextId = math.max((storage.nextId or 0), v.link_id) + 1
-  --       game.print("Found filter " .. filter .. " with id=" .. v.link_id)
-  --     end
-  --   end)
-  -- end
+
+  game.print("Unichest: mod configuration changed, trying to repair chest filters on every surface")
+  for _, surface in pairs(game.surfaces) do
+    table.each(surface.find_entities_filtered {name = Config.CHEST_NAME}, function(v)
+      Chest.setItemFilter(v, Chest.getItemFilter(v))
+    end)
+  end
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
