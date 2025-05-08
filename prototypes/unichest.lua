@@ -28,9 +28,8 @@ local function create(protoName)
     icon = linked_chest.icon,
     icon_size = linked_chest.icon_size,
     picture = linked_chest.picture,
-    gui_mode = "all",
+    gui_mode = "none",
     corpse = "",
-    selecttable_in_game = true,
     collision_box = { { -0.25, -0.25 }, { 0.25, 0.25 } },
     selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }
   })

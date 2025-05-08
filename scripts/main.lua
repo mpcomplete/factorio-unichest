@@ -132,10 +132,6 @@ script.on_init(function(event)
   end
 end)
 
-script.on_load(function(event)
-  storage.nameToId = storage.nameToId or {}
-end)
-
 script.on_configuration_changed(function(event)
   for i, player in pairs(game.players) do
     initGui(player)

@@ -8,6 +8,7 @@ function Chest.getNextId()
 end
 
 function Chest.getOrCreateId(itemName)
+  storage.nameToId = storage.nameToId or {}
   local id = storage.nameToId[itemName]
   if id == nil then
     id = Chest.getNextId()
@@ -31,6 +32,7 @@ function ensureValidItem(itemName)
 end
 
 function Chest.getNameFromId(id)
+  storage.nameToId = storage.nameToId or {}
   for key, value in pairs(storage.nameToId) do
     if value == id then
       return ensureValidItem(key)
