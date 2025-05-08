@@ -114,7 +114,18 @@ end)
 
 script.on_event(defines.events.on_entity_settings_pasted, function(event)
   local player = game.players[event.player_index]
-  Chest.setItemFilterFromSource(event.destination, event.source, false)
+
+  -- Try to determine if this chest is an input or output chest for the source entity.
+  local isOutput = false
+  local center = Position.new(event.destination.position)
+  local bbox = Area.new{center, center}:expand(10)
+  table.each(event.destination.surface.find_entities_filtered{type = "inserter", area = bbox}, function(v)
+    if v.drop_target == event.destination and v.pickup_target == event.source then
+      isOutput = true
+    end
+  end)
+
+  Chest.setItemFilterFromSource(event.destination, event.source, isOutput)
 end)
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)

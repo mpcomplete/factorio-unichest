@@ -3,7 +3,11 @@ Version: 1.0.5
 Date: 2025-05-07
   Fixes:
     - Updated for factorio 2.0.
+  Changes:
     - Supports quality (defaults to normal).
+    - New setting to use separate chests per surface/planet (defaults to true).
+    - Pasting settings from a machine to a chest now detects whether that chest acts as input
+    or output, based on whether an inserter is dropping items into it.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.4
 Date: 2023-07-03

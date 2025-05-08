@@ -10,7 +10,7 @@ script.on_event(defines.events.on_player_selected_area, function(event)
   -- the other end of the inserter so the calls to setChestFilter will appropriately cycle.
   local pickups = {}
   local drops = {}
-  table.each(player.surface.find_entities_filtered{type = "inserter", area = event.area}, function(v)
+  table.each(event.surface.find_entities_filtered{type = "inserter", area = event.area}, function(v)
     if v.drop_target and v.pickup_target then
       if v.pickup_target.name == Config.CHEST_NAME then
         local id = v.drop_target.unit_number
@@ -24,7 +24,7 @@ script.on_event(defines.events.on_player_selected_area, function(event)
     end
   end)
   -- Miners are special in that they don't have inserters.
-  table.each(player.surface.find_entities_filtered{type = "mining-drill", area = event.area}, function(v)
+  table.each(event.surface.find_entities_filtered{type = "mining-drill", area = event.area}, function(v)
     if v.mining_target and prototypes.item[v.mining_target.name] and v.drop_target and v.drop_target.name == Config.CHEST_NAME then
       local id = v.unit_number
       drops[id] = drops[id] or {}
