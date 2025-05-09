@@ -3,6 +3,7 @@ Version: 1.0.5
 Date: 2025-05-07
   Fixes:
     - Updated for factorio 2.0.
+    - Hopefully made the GUI multiplayer-safe.
   Changes:
     - Supports quality (defaults to normal).
     - New setting to use separate chests per surface/planet (defaults to true).

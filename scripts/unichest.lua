@@ -1,7 +1,4 @@
-local Position = require('__kry_stdlib__/stdlib/area/position')
-local Area = require('__kry_stdlib__/stdlib/area/area')
 local table = require('__kry_stdlib__/stdlib/utils/table')
-local Util = require('util')
 
 Chest = Chest or {}
 
@@ -16,32 +13,42 @@ function Chest.onBuiltEntity(event, entity)
   end
 end
 
+local guiData = {}
 function Chest.openGui(player, entity)
-  local guiEntity = entity
-  local guiFilter = Chest.getItemFilter(guiEntity)
-  player.gui.relative.unichestFrame.itemFilter.elem_value = guiFilter
-  Chest.setItemFilter(guiEntity, guiFilter)
+  guiData[player.index] = {entity = entity, filter = Chest.getItemFilter(entity)}
+  local data = guiData[player.index]
+  player.gui.relative.unichestFrame.itemFilter.elem_value = data.filter
+  Chest.setItemFilter(data.entity, data.filter)
 
   script.on_event(defines.events.on_tick, function(event)
     -- Reset any changes via the GUIs we can't control (e.g. Link bitmask and manual filtering).
-    if not guiEntity.valid then return end
-    player.gui.relative.unichestFrame.itemFilter.elem_value = guiFilter
-    Chest.setItemFilter(guiEntity, guiFilter)
+    for player_index, data in pairs(guiData) do
+      if not data.entity.valid then return end
+      local player = game.get_player(player_index)
+      player.gui.relative.unichestFrame.itemFilter.elem_value = data.filter
+      Chest.setItemFilter(data.entity, data.filter)
+    end
   end)
 
   script.on_event(defines.events.on_gui_elem_changed, function(event)
-    if not guiEntity.valid then return end
+    local data = guiData[event.player_index]
+    local player = game.get_player(event.player_index)
+    if not data.entity.valid then return end
     local element = event.element
     if element ~= player.gui.relative.unichestFrame.itemFilter then return end
     if element.elem_value and element.elem_value ~= "" then
       -- Don't let them set an empty filter.
-      guiFilter = element.elem_value
+      data.filter = element.elem_value
     end
   end)
 
   script.on_event(defines.events.on_gui_closed, function(event)
-    script.on_event(defines.events.on_tick, nil)
-    script.on_event(defines.events.on_gui_elem_changed, nil)
+    guiData[event.player_index] = nil
+    game.print("Gui closed, remaining guis = " .. table.size(guiData))
+    if table.size(guiData) == 0 then
+      script.on_event(defines.events.on_tick, nil)
+      script.on_event(defines.events.on_gui_elem_changed, nil)
+    end
   end)
 end
 
