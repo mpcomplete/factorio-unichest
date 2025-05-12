@@ -27,10 +27,12 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
         -- set tag for our example tag-chest
         local id = bp_entity.entity_number
         local entity = map[id]
-        if entity then
-          bp.set_blueprint_entity_tag(id, "filter", Chest.getItemFilter(entity))
+        local tagFilter = entity and (entity.tags and entity.tags["filter"] or Chest.getItemFilter(entity))
+        if tagFilter then
+          game.print("setting bp tags " .. (tagFilter.name))
+          bp.set_blueprint_entity_tag(id, "filter", tagFilter)
         else
-          game.print("missing mapping for bp_entity " .. id .. ":" .. bp_entity.name)
+          game.print("missing tags for bp_entity " .. id .. ":" .. bp_entity.name)
         end
       end
     end
