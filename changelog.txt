@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.6
+Date: 2025-05-10
+  Fixes:
+    - Fixed failure to apply filters when pasting onto chests in various cases.
+    - Removed accidental debug logs.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.5
 Date: 2025-05-07
   Fixes:

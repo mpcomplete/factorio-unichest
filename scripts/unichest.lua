@@ -44,7 +44,6 @@ function Chest.openGui(player, entity)
 
   script.on_event(defines.events.on_gui_closed, function(event)
     guiData[event.player_index] = nil
-    game.print("Gui closed, remaining guis = " .. table.size(guiData))
     if table.size(guiData) == 0 then
       script.on_event(defines.events.on_tick, nil)
       script.on_event(defines.events.on_gui_elem_changed, nil)

@@ -39,62 +39,71 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
   end
 end)
 
--- TODO:
--- I believe this is no longer necessary? It appears to exist so that pasting a blueprint over ghost entities updates their tags to the
--- new blueprint's version. But that seems to work without this garbage.
---
--- function rotateAndFlip(pos, dir, flipH, flipV)
---   if flipH then pos.x = -pos.x end
---   if flipV then pos.y = -pos.y end
---   if dir == defines.direction.north then return pos end
---   if dir == defines.direction.west then return Position.construct(pos.y, -pos.x) end
---   if dir == defines.direction.south then return Position.construct(-pos.x, -pos.y) end
---   if dir == defines.direction.east then return Position.construct(-pos.y, pos.x) end
---   game.print("Warning: unexpected blueprint rotation " .. dir ". Chest filters will be incorrect.")
---   return pos
--- end
---
--- script.on_event(defines.events.on_pre_build, function(event)
-  -- local player = game.players[event.player_index]
-  -- if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
-  -- local bp = player.cursor_record or player.cursor_stack
-  -- if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
-  -- storage.lastPreBuildTick = event.tick
+function rotateAndFlip(pos, dir, flipH, flipV)
+  if flipH then pos.x = -pos.x end
+  if flipV then pos.y = -pos.y end
+  if dir == defines.direction.north then return pos end
+  if dir == defines.direction.west then return Position.construct(pos.y, -pos.x) end
+  if dir == defines.direction.south then return Position.construct(-pos.x, -pos.y) end
+  if dir == defines.direction.east then return Position.construct(-pos.y, pos.x) end
+  game.print("Warning: unexpected blueprint rotation " .. dir ". Chest filters will be incorrect.")
+  return pos
+end
 
-  -- -- Find the blueprint's bounding box.
-  -- local positions = {}
-  -- table.each(bp.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
-  -- local leftTop = Position.min_xy(positions)
-  -- local rightBottom = Position.max_xy(positions)
-  -- local bbox = Area.new{leftTop, rightBottom}
-  -- local negCenter = bbox:center():flip()
-  -- local bboxSize = bbox:offset(negCenter)  -- `bbox - bbox.center`
-  -- -- Maybe rotate the bbox.
-  -- local area = bboxSize:offset(event.position):ceil()
-  -- if event.direction == defines.direction.east or event.direction == defines.direction.west then
-  --   area = area:flip()
-  -- end
+script.on_event(defines.events.on_pre_build, function(event)
+  local player = game.players[event.player_index]
+  if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
+  local bp = player.cursor_record or player.cursor_stack
+  if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
+  storage.lastPreBuildTick = event.tick
 
-  -- -- Find the positions where the blueprint *would* place the relevant entities.
-  -- local bpEntityPositions = {}
-  -- table.each(bp.get_blueprint_entities(), function(v)
-  --   if v.name == Config.CHEST_NAME then
-  --     local bpPos = rotateAndFlip(Position.new(v.position):add(negCenter), event.direction, event.flip_horizontal, event.flip_vertical)
-  --     local pos = bpPos:add(event.position):center()
-  --     table.insert(bpEntityPositions, pos)
+  -- Find the blueprint's bounding box.
+  local positions = {}
+  table.each(bp.get_blueprint_entities(), function(v) table.insert(positions, Position.new(v.position)) end)
+  local leftTop = Position.min_xy(positions)
+  local rightBottom = Position.max_xy(positions)
+  local bbox = Area.new{leftTop, rightBottom}
+  local negCenter = bbox:center():flip()
+  local bboxSize = bbox:offset(negCenter)  -- `bbox - bbox.center`
+  -- Maybe rotate the bbox.
+  local area = bboxSize:offset(event.position):ceil()
+  if event.direction == defines.direction.east or event.direction == defines.direction.west then
+    area = area:flip()
+  end
+
+  -- Find the positions where the blueprint *would* place the relevant entities.
+  local bpEntityPositions = {}
+  table.each(bp.get_blueprint_entities(), function(v)
+    if v.name == Config.CHEST_NAME then
+      local bpPos = rotateAndFlip(Position.new(v.position):add(negCenter), event.direction, event.flip_horizontal, event.flip_vertical)
+      local pos = bpPos:add(event.position):center()
+      table.insert(bpEntityPositions, {pos = pos, entity_number = v.entity_number})
+    end
+  end)
+
+  -- This part no longer seems necessary? I think it exists to replace the tags of a previously placed ghost-chest. But
+  -- that works without this junk.
+  -- Destroy any existing entities where the blueprint would overwrite them.
+  -- table.each(player.surface.find_entities_filtered {name = 'entity-ghost', ghost_name = Config.CHEST_NAME, area = area}, function(v)
+  --   local center = Position.center(v.position)
+  --   if table.any(bpEntityPositions, function(p) return center:equals(p.pos) end) then
+  --     game.print("destroy ghost")
+  --     v.destroy()
   --   end
   -- end)
 
-  -- -- Destroy any existing entities where the blueprint would overwrite them.
-  -- table.each(player.surface.find_entities_filtered {name = 'entity-ghost', area = area}, function(v)
-  --   if v.ghost_name == Config.CHEST_NAME then
-  --     local center = Position.center(v.position)
-  --     if table.any(bpEntityPositions, function(p) return center:equals(p) end) then
-  --       v.destroy()
-  --     end
-  --   end
-  -- end)
--- end)
+  -- Replace the tags of any chests we're pasting over.
+  table.each(player.surface.find_entities_filtered {name = Config.CHEST_NAME, area = area}, function(v)
+    local center = Position.center(v.position)
+    local found = table.find(bpEntityPositions, function(p) return center:equals(p.pos) end)
+    if found then
+      local tagFilter = bp.get_blueprint_entity_tag(found.entity_number, "filter")
+      if tagFilter then
+        Chest.setItemFilter(v, tagFilter)
+      end
+    end
+  end)
+end)
 
 function onBuiltEntity(event)
   local entity = event.entity
@@ -107,32 +116,24 @@ script.on_event(defines.events.on_built_entity, onBuiltEntity)
 script.on_event(defines.events.on_robot_built_entity, onBuiltEntity)
 script.on_event(defines.events.script_raised_built, onBuiltEntity)
 
+  -- Try to determine if this chest is an input or output chest for the source entity.
+function checkIsOutput(chest, source)
+  local isOutput = false
+  local center = Position.new(chest.position)
+  local bbox = Area.new{center, center}:expand(10)
+  table.each(chest.surface.find_entities_filtered{type = "inserter", area = bbox}, function(v)
+    if v.drop_target == chest and v.pickup_target == source then isOutput = true end
+  end)
+  return isOutput
+end
+
 script.on_event("zy-unichest-paste-alt", function(event)
   local player = game.players[event.player_index]
   Chest.setItemFilterFromSource(player.selected, player.entity_copy_source, true)
 end)
 
 script.on_event(defines.events.on_entity_settings_pasted, function(event)
-  local player = game.players[event.player_index]
-
-  -- Try to determine if this chest is an input or output chest for the source entity.
-  local isOutput = false
-  local center = Position.new(event.destination.position)
-  local bbox = Area.new{center, center}:expand(10)
-  table.each(event.destination.surface.find_entities_filtered{type = "inserter", area = bbox}, function(v)
-    if v.drop_target == event.destination and v.pickup_target == event.source then
-      isOutput = true
-    end
-  end)
-
-  Chest.setItemFilterFromSource(event.destination, event.source, isOutput)
-end)
-
-script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
-  local player = game.players[event.player_index]
-  if event.setting == "zy-unichest-per-surface" then
-    game.print("Toggled per-surface, should fix up chests")
-  end
+  Chest.setItemFilterFromSource(event.destination, event.source, checkIsOutput(event.destination, event.source))
 end)
 
 function initGui(player)

@@ -34,7 +34,7 @@ function ensureValidItem(itemFilter)
 end
 
 function Chest.getItemFilter(entity)
-  local inventory = entity.get_output_inventory()
+  local inventory = entity.get_output_inventory() or {}
   for i = 1, #inventory do
     local filter = inventory.get_filter(i)
     if filter then
@@ -49,7 +49,7 @@ function Chest.setItemFilter(entity, itemFilter)
   itemFilter = ensureValidItem(itemFilter)
   storage.lastItemFilter = itemFilter
 
-  local id = Chest.getOrCreateId(itemFilter, settings.startup["zy-unichest-per-surface"].value and entity.surface.name or "nauvis")
+  local id = Chest.getOrCreateId(itemFilter, entity.surface.name)
   entity.link_id = id
   local inventory = entity.get_output_inventory()
   for i = 1, #inventory do

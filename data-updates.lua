@@ -1,3 +1,5 @@
+Config = require("config")
+
 function makeEntityPastableFrom(protoType)
   for _, entityProto in pairs(data.raw[protoType]) do
     if not entityProto.additional_pastable_entities then

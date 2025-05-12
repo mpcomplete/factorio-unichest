@@ -28,6 +28,7 @@ local function create(protoName)
     icon = linked_chest.icon,
     icon_size = linked_chest.icon_size,
     picture = linked_chest.picture,
+    allow_copy_paste = true,
     gui_mode = "none",
     corpse = "",
     collision_box = { { -0.25, -0.25 }, { 0.25, 0.25 } },
