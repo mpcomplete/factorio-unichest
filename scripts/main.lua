@@ -29,7 +29,6 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
         local entity = map[id]
         local tagFilter = entity and (entity.tags and entity.tags["filter"] or Chest.getItemFilter(entity))
         if tagFilter then
-          game.print("setting bp tags " .. (tagFilter.name))
           bp.set_blueprint_entity_tag(id, "filter", tagFilter)
         else
           game.print("missing tags for bp_entity " .. id .. ":" .. bp_entity.name)
@@ -52,10 +51,21 @@ function rotateAndFlip(pos, dir, flipH, flipV)
   return pos
 end
 
+-- Going to go on record here and say the cursor/blueprint API is fucking braindead.
+function Inventory_get_blueprint(player, record_or_stack)
+  if not record_or_stack or not record_or_stack.valid then return nil end
+  if record_or_stack.type == "blueprint-book" then
+    return Inventory_get_blueprint(player, record_or_stack.contents[record_or_stack.get_active_index(player)])
+  end
+  local status, rv = pcall(function() return record_or_stack.get_blueprint_entities() end)
+  if status then return record_or_stack end
+  return nil
+end
+
 script.on_event(defines.events.on_pre_build, function(event)
   local player = game.players[event.player_index]
   if not player.is_cursor_blueprint() or storage.lastPreBuildTick == event.tick then return end
-  local bp = player.cursor_record or player.cursor_stack
+  local bp = Inventory_get_blueprint(player, player.cursor_record or player.cursor_stack)
   if not bp or not bp.get_blueprint_entities() then return end  -- might be all tiles
   storage.lastPreBuildTick = event.tick
 
