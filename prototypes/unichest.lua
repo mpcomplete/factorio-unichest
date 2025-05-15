@@ -101,7 +101,6 @@ local function create(protoName)
         },
         prerequisites = {
           "logistics-2",
-          "stack-inserter",
           "logistic-science-pack",
           "chemical-science-pack"
         }
@@ -115,7 +114,6 @@ local function create(protoName)
         },
         prerequisites = {
           "logistics-3",
-          "stack-inserter",
           "advanced-electronics",
           "logistic-science-pack",
           "chemical-science-pack",
@@ -132,7 +130,6 @@ local function create(protoName)
         },
         prerequisites = {
           "logistics-3",
-          "stack-inserter",
           "inserter-capacity-bonus-1",
           "logistic-science-pack",
           "chemical-science-pack",
@@ -151,7 +148,6 @@ local function create(protoName)
         },
         prerequisites = {
           "logistics-3",
-          "stack-inserter",
           "inserter-capacity-bonus-1",
           "logistic-science-pack",
           "chemical-science-pack",

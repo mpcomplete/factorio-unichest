@@ -1,5 +1,5 @@
 #!/bin/sh
-name=Unichest_1.0.7
+name=Unichest_1.0.8
 mkdir $name
 cp -a * $name
 rm $name/*.sh $name/*.zip $name/$name $name/action.gif -rf
