@@ -51,10 +51,16 @@ function rotateAndFlip(pos, dir, flipH, flipV)
   return pos
 end
 
+function testBlueprintBook(stack)
+  local v, rv = pcall(function() return stack.contents and true or false end)
+  return v and rv
+end
+
 -- Going to go on record here and say the cursor/blueprint API is fucking braindead.
 function Inventory_get_blueprint(player, record_or_stack)
   if not record_or_stack or not record_or_stack.valid then return nil end
-  if record_or_stack.type == "blueprint-book" then
+  -- if record_or_stack.type == "blueprint-book" then
+  if record_or_stack.type == "blueprint-book" and testBlueprintBook(record_or_stack) then
     return Inventory_get_blueprint(player, record_or_stack.contents[record_or_stack.get_active_index(player)])
   end
   local status, rv = pcall(function() return record_or_stack.get_blueprint_entities() end)
